@@ -9,21 +9,17 @@ const totalDays = 30;
 const idealPercent = (currentDate / totalDays) * 100;
 
 const kpiData = {
-  financeiro: { target: 2000000, current: 1100000 },
-  volume: { target: 5000, current: 3200 }
+  seguroNovo: { target: 1200000, current: 800000 },
+  renovacao: { target: 800000, current: 650000 },
+  total: { target: 2000000, current: 1450000 },
+  comissao: { target: 400000, current: 290000 }
 };
 
 const rankingData = [
   { id: 1, name: "Roberto Silva", sales: 450000, target: 500000, avatar: "roberto" },
   { id: 2, name: "Amanda Costa", sales: 420000, target: 500000, avatar: "amanda" },
   { id: 3, name: "Carlos Souza", sales: 380000, target: 500000, avatar: "carlos" },
-  { id: 4, name: "Fernanda Lima", sales: 350000, target: 500000, avatar: "fernanda" },
-  { id: 5, name: "Juliana Alves", sales: 310000, target: 500000, avatar: "juliana" },
-  { id: 6, name: "Marcos Rocha", sales: 290000, target: 500000, avatar: "marcos" },
-  { id: 7, name: "Diego Martins", sales: 250000, target: 500000, avatar: "diego" },
-  { id: 8, name: "Luciana Reis", sales: 220000, target: 500000, avatar: "luciana" },
-  { id: 9, name: "Bruno Gomes", sales: 180000, target: 500000, avatar: "bruno" },
-  { id: 10, name: "Patrícia Melo", sales: 150000, target: 500000, avatar: "patricia" },
+  { id: 4, name: "Fernanda Lima", sales: 200000, target: 500000, avatar: "fernanda" },
 ];
 
 const lineData = Array.from({ length: totalDays }, (_, i) => {
@@ -104,7 +100,7 @@ const DoubleBezelCard = ({ children, className = "", wrapperClassName = "" }: an
   </div>
 );
 
-const ProgressBar = ({ label, current, target, formatFn, showIdealMarker = true }: any) => {
+const ProgressBar = ({ label, subLabel, current, target, formatFn, showIdealMarker = true }: any) => {
   const percent = (current / target) * 100;
   const color = getStatusColor(percent, idealPercent);
   const [mounted, setMounted] = useState(false);
@@ -114,7 +110,10 @@ const ProgressBar = ({ label, current, target, formatFn, showIdealMarker = true 
   return (
     <div className="flex flex-col gap-2 group">
       <div className="flex justify-between items-end">
-        <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] group-hover:text-white/60 transition-colors">{label}</span>
+        <div className="flex flex-col justify-end pb-0.5">
+          <span className="text-[11px] md:text-[13px] font-extrabold text-[#F39C38] uppercase tracking-[0.1em] drop-shadow-md group-hover:text-[#d8751e] transition-colors">{label}</span>
+          {subLabel && <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-1">{subLabel}</span>}
+        </div>
         <div className="text-right">
           <span className="text-xl font-extrabold text-white tracking-tight">{formatFn(current)}</span>
           <span className="text-[10px] font-semibold text-white/40 ml-2">/ {formatFn(target)}</span>
@@ -180,148 +179,99 @@ export default function App() {
 
         {/* Top KPIs (Metas Globais) */}
         <DoubleBezelCard wrapperClassName="shrink-0 transition-all duration-700 delay-100 ease-[cubic-bezier(0.32,0.72,0,1)]" className="p-5 md:p-6 flex flex-col justify-center">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-20">
-            <ProgressBar 
-              label="Volume Financeiro (R$)" 
-              current={kpiData.financeiro.current} 
-              target={kpiData.financeiro.target} 
-              formatFn={formatCurrency} 
-            />
-            <ProgressBar 
-              label="Volume de Vendas (Qtd)" 
-              current={kpiData.volume.current} 
-              target={kpiData.volume.target} 
-              formatFn={formatNumber} 
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-3">
+            <div className="pb-6 sm:pb-0 sm:pr-8 border-b sm:border-b-0 sm:border-r border-[#2A2A2A]">
+              <ProgressBar 
+                label="Seguro Novo" 
+                current={kpiData.seguroNovo.current} 
+                target={kpiData.seguroNovo.target} 
+                formatFn={formatCurrency} 
+              />
+            </div>
+            <div className="py-6 sm:py-0 sm:px-8 border-b sm:border-b-0 sm:border-r border-[#2A2A2A]">
+              <ProgressBar 
+                label="Renovação" 
+                current={kpiData.renovacao.current} 
+                target={kpiData.renovacao.target} 
+                formatFn={formatCurrency} 
+              />
+            </div>
+            <div className="pt-6 sm:pt-0 sm:pl-8">
+              <ProgressBar 
+                label="Total Produção" 
+                subLabel="(Seguro Novo + Renovação)"
+                current={kpiData.total.current} 
+                target={kpiData.total.target} 
+                formatFn={formatCurrency} 
+              />
+            </div>
           </div>
         </DoubleBezelCard>
 
         {/* Main Grid: Ranking (Left) & Charts (Right) */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 md:gap-5 flex-1 xl:min-h-0 transition-all duration-700 delay-200 ease-[cubic-bezier(0.32,0.72,0,1)]">
           
-          {/* Left Column: Ranking */}
-          <DoubleBezelCard wrapperClassName="xl:col-span-4 h-[450px] xl:h-auto xl:min-h-0 flex flex-col" className="p-4 md:p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-4 md:mb-5 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
-                  <Users size={14} className="text-[#d8751e]" />
-                </div>
-                <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">Ranking Vendedores</h2>
-              </div>
-              <div className="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold text-white/60 tracking-wider">
-                TOP 10
-              </div>
-            </div>
-            
-            <div className="flex flex-col gap-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-              {rankingData.map((seller, index) => {
-                const percent = (seller.sales / seller.target) * 100;
-                const avatarUrl = `https://api.dicebear.com/9.x/notionists/svg?seed=${seller.avatar}&backgroundColor=transparent`;
-                
-                return (
-                  <div key={seller.id} className="flex flex-col gap-2 group cursor-pointer active:scale-[0.98] transition-transform duration-300">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-white/30 font-bold text-xs w-4 font-mono">{index + 1}</span>
-                        <div className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-110 group-hover:border-white/30">
-                          <img src={avatarUrl} alt={seller.name} className="w-6 h-6 opacity-80 mix-blend-screen grayscale group-hover:grayscale-0 transition-all" />
-                        </div>
-                        <span className="font-semibold text-[13px] text-white/80 group-hover:text-white transition-colors">{seller.name}</span>
-                      </div>
-                      <span className="font-bold text-xs text-white tracking-tight">{formatCurrency(seller.sales)}</span>
-                    </div>
-                    {/* Seller Progress Bar */}
-                    <div className="h-[3px] bg-white/5 rounded-full overflow-hidden ml-7 w-[calc(100%-28px)] group-hover:bg-white/10 transition-colors">
-                      <div 
-                        className="h-full rounded-full transition-all duration-[1200ms] ease-[cubic-bezier(0.32,0.72,0,1)]" 
-                        style={{ 
-                          width: mounted ? `${percent}%` : '0%', 
-                          backgroundColor: index < 3 ? '#00AE00' : 'rgba(255,255,255,0.4)',
-                          boxShadow: index < 3 ? '0 0 8px rgba(0,174,0,0.5)' : 'none'
-                        }} 
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </DoubleBezelCard>
-
-          {/* Right Column: Charts */}
-          <div className="xl:col-span-8 flex flex-col gap-4 md:gap-5 xl:min-h-0">
-            
-            {/* Top Right: Line Chart (Projeção) */}
-            <DoubleBezelCard wrapperClassName="h-[350px] xl:h-auto xl:flex-1 xl:min-h-0 flex flex-col" className="p-4 md:p-5 flex flex-col">
-              <div className="flex items-center justify-between mb-4 md:mb-5 shrink-0">
+          {/* Left Column: Ranking & Mix de Produtos */}
+          <div className="xl:col-span-4 flex flex-col gap-4 md:gap-5 xl:min-h-0">
+            {/* Ranking Operadores */}
+            <DoubleBezelCard wrapperClassName="shrink-0 flex flex-col" className="p-4 md:p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-3 shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
-                    <TrendingUp size={14} className="text-[#d8751e]" />
+                    <Users size={14} className="text-[#00AE00]" />
                   </div>
-                  <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">Evolução & Projeção</h2>
+                  <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">Ranking de Operadores</h2>
                 </div>
-                <div className="flex gap-4 text-[9px] font-bold uppercase tracking-widest text-white/50">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 bg-[#d8751e] rounded-sm shadow-[0_0_8px_rgba(216,117,30,0.5)]"></div> Realizado
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-4 h-0 border-t border-dashed border-[#d8751e] opacity-80"></div> Projeção
-                  </div>
+                <div className="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold text-white/60 tracking-wider">
+                  TOP 4
                 </div>
               </div>
               
-              <div className="flex-1 w-full h-full min-h-0 relative">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={lineData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorAtual" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#d8751e" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#d8751e" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
-                    <XAxis 
-                      dataKey="dia" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 600, fontFamily: 'ui-monospace, SFMono-Regular, monospace' }} 
-                      dy={10}
-                    />
-                    <YAxis 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 600, fontFamily: 'ui-monospace, SFMono-Regular, monospace' }} 
-                      tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`}
-                      dx={-10}
-                    />
-                    <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                    <Area 
-                      type="monotone" 
-                      dataKey="atual" 
-                      stroke="#d8751e" 
-                      strokeWidth={3} 
-                      fill="url(#colorAtual)" 
-                      activeDot={{ r: 5, fill: "#050505", stroke: "#d8751e", strokeWidth: 2 }}
-                      animationDuration={1500}
-                      animationEasing="ease-out"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="projecao" 
-                      stroke="#d8751e" 
-                      strokeWidth={2} 
-                      strokeDasharray="4 4" 
-                      dot={false}
-                      activeDot={false}
-                      animationDuration={1500}
-                      animationEasing="ease-out"
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
+              <div className="flex flex-col mb-4 pb-4 border-b border-[#2A2A2A] shrink-0">
+                <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest mb-0.5">Comissão Total Distribuída</span>
+                <span className="text-xl font-extrabold text-[#00AE00] tracking-tight">{formatCurrency(kpiData.comissao.current)}</span>
+              </div>
+              
+              <div className="flex flex-col gap-3 flex-1 pr-2 custom-scrollbar">
+                {rankingData.map((seller, index) => {
+                  const percent = (seller.sales / seller.target) * 100;
+                  const comissao = seller.sales * 0.2;
+                  const avatarUrl = `https://api.dicebear.com/9.x/notionists/svg?seed=${seller.avatar}&backgroundColor=transparent`;
+                  
+                  return (
+                    <div key={seller.id} className="flex flex-col gap-2 group cursor-pointer active:scale-[0.98] transition-transform duration-300">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-white/30 font-bold text-xs w-4 font-mono">{index + 1}</span>
+                          <div className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-110 group-hover:border-white/30">
+                            <img src={avatarUrl} alt={seller.name} className="w-6 h-6 opacity-80 mix-blend-screen grayscale group-hover:grayscale-0 transition-all" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-[13px] text-white/80 group-hover:text-white transition-colors">{seller.name}</span>
+                            <span className="text-[9px] font-bold text-white/40">Prod: {formatCurrency(seller.sales)}</span>
+                          </div>
+                        </div>
+                        <span className="font-bold text-xs text-[#00AE00] tracking-tight">{formatCurrency(comissao)}</span>
+                      </div>
+                      {/* Seller Progress Bar */}
+                      <div className="h-[3px] bg-white/5 rounded-full overflow-hidden ml-7 w-[calc(100%-28px)] group-hover:bg-white/10 transition-colors">
+                        <div 
+                          className="h-full rounded-full transition-all duration-[1200ms] ease-[cubic-bezier(0.32,0.72,0,1)]" 
+                          style={{ 
+                            width: mounted ? `${percent}%` : '0%', 
+                            backgroundColor: index < 3 ? '#00AE00' : 'rgba(255,255,255,0.4)',
+                            boxShadow: index < 3 ? '0 0 8px rgba(0,174,0,0.5)' : 'none'
+                          }} 
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </DoubleBezelCard>
 
-            {/* Bottom Right: Bar Chart (Mix de Produtos) */}
-            <DoubleBezelCard wrapperClassName="h-[280px] xl:h-[220px] shrink-0 flex flex-col" className="p-4 md:p-5 flex flex-col">
+            {/* Bottom Right: Bar Chart (Mix de Produtos) -> Moved to Left */}
+            <DoubleBezelCard wrapperClassName="h-[280px] xl:h-auto xl:flex-1 xl:min-h-0 flex flex-col" className="p-4 md:p-5 flex flex-col">
               <div className="flex items-center gap-2.5 mb-3 shrink-0">
                 <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
                   <Package size={14} className="text-[#00AE00]" />
@@ -389,6 +339,80 @@ export default function App() {
                       ))}
                     </Bar>
                   </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </DoubleBezelCard>
+          </div>
+
+          {/* Right Column: Charts */}
+          <div className="xl:col-span-8 flex flex-col xl:min-h-0">
+            
+            {/* Top Right: Line Chart (Projeção) */}
+            <DoubleBezelCard wrapperClassName="h-[350px] xl:h-auto xl:flex-1 xl:min-h-0 flex flex-col" className="p-4 md:p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-4 md:mb-5 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
+                    <TrendingUp size={14} className="text-[#00AE00]" />
+                  </div>
+                  <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">Evolução & Projeção</h2>
+                </div>
+                <div className="flex gap-4 text-[9px] font-bold uppercase tracking-widest text-white/50">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 bg-[#d8751e] rounded-sm shadow-[0_0_8px_rgba(216,117,30,0.5)]"></div> Realizado
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-4 h-0 border-t border-dashed border-[#d8751e] opacity-80"></div> Projeção
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex-1 w-full h-full min-h-0 relative">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={lineData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorAtual" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#d8751e" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#d8751e" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
+                    <XAxis 
+                      dataKey="dia" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 600, fontFamily: 'ui-monospace, SFMono-Regular, monospace' }} 
+                      dy={10}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 600, fontFamily: 'ui-monospace, SFMono-Regular, monospace' }} 
+                      tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`}
+                      dx={-10}
+                    />
+                    <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                    <Area 
+                      type="monotone" 
+                      dataKey="atual" 
+                      stroke="#d8751e" 
+                      strokeWidth={3} 
+                      fill="url(#colorAtual)" 
+                      activeDot={{ r: 5, fill: "#050505", stroke: "#d8751e", strokeWidth: 2 }}
+                      animationDuration={1500}
+                      animationEasing="ease-out"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="projecao" 
+                      stroke="#d8751e" 
+                      strokeWidth={2} 
+                      strokeDasharray="4 4" 
+                      dot={false}
+                      activeDot={false}
+                      animationDuration={1500}
+                      animationEasing="ease-out"
+                    />
+                  </ComposedChart>
                 </ResponsiveContainer>
               </div>
             </DoubleBezelCard>
