@@ -1,0 +1,6 @@
+{
+  "name": "Seguros Design System",
+  "description": "Visualização básica dos tokens do Design System de Seguros",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
