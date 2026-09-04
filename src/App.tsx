@@ -96,9 +96,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 // Double-Bezel Architecture Container (Doppelrand)
-const DoubleBezelCard = ({ children, className = "", flex1 = false, wrapperClassName = "" }: any) => (
-  <div className={`bg-white/[0.02] border border-white/[0.05] p-[5px] rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.4)] ${flex1 ? 'flex-1 min-h-0 flex flex-col' : ''} ${wrapperClassName}`}>
-    <div className={`bg-[#050505]/40 backdrop-blur-3xl rounded-[calc(2rem-5px)] border border-white/[0.03] ${flex1 ? 'flex-1 min-h-0 flex flex-col' : ''} ${className}`}>
+const DoubleBezelCard = ({ children, className = "", wrapperClassName = "" }: any) => (
+  <div className={`bg-white/[0.02] border border-white/[0.05] p-[5px] rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.4)] ${wrapperClassName}`}>
+    <div className={`bg-[#050505]/40 backdrop-blur-3xl rounded-[calc(2rem-5px)] border border-white/[0.03] h-full ${className}`}>
       {children}
     </div>
   </div>
@@ -146,7 +146,7 @@ export default function App() {
   useEffect(() => { setMounted(true); }, []);
 
   return (
-    <div className="h-screen bg-[#050505] text-white font-['Plus_Jakarta_Sans'] flex flex-col overflow-hidden relative selection:bg-[#d8751e]/30">
+    <div className="min-h-[100dvh] xl:h-screen bg-[#050505] text-white font-['Plus_Jakarta_Sans'] flex flex-col overflow-x-hidden xl:overflow-hidden relative selection:bg-[#d8751e]/30">
       
       {/* Vibe Archetype: Ethereal Glass Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -155,11 +155,11 @@ export default function App() {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMiIvPjwvc3ZnPg==')] opacity-[0.15] mix-blend-overlay"></div>
       </div>
 
-      <main className="relative z-10 flex-1 p-4 md:p-6 flex flex-col gap-5 max-w-[1600px] mx-auto w-full min-h-0">
+      <main className="relative z-10 flex-1 p-3 sm:p-4 md:p-6 flex flex-col gap-4 md:gap-5 max-w-[1600px] mx-auto w-full xl:min-h-0">
         
         {/* Header Section */}
-        <header className="flex justify-between items-end pb-4 shrink-0 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] translate-y-0 opacity-100">
-          <div className="flex items-center gap-4">
+        <header className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-end gap-4 pb-2 md:pb-4 shrink-0 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] translate-y-0 opacity-100">
+          <div className="flex items-center gap-3 md:gap-4">
              <div>
                 <h1 className="text-2xl font-extrabold tracking-tight text-white uppercase">
                   DASHBOARD <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F39C38] to-[#d8751e]">TEST 01</span>
@@ -179,8 +179,8 @@ export default function App() {
         </header>
 
         {/* Top KPIs (Metas Globais) */}
-        <DoubleBezelCard className="p-6 flex flex-col justify-center shrink-0 transition-all duration-700 delay-100 ease-[cubic-bezier(0.32,0.72,0,1)]">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20">
+        <DoubleBezelCard wrapperClassName="shrink-0 transition-all duration-700 delay-100 ease-[cubic-bezier(0.32,0.72,0,1)]" className="p-5 md:p-6 flex flex-col justify-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-20">
             <ProgressBar 
               label="Volume Financeiro (R$)" 
               current={kpiData.financeiro.current} 
@@ -197,11 +197,11 @@ export default function App() {
         </DoubleBezelCard>
 
         {/* Main Grid: Ranking (Left) & Charts (Right) */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 flex-1 min-h-0 transition-all duration-700 delay-200 ease-[cubic-bezier(0.32,0.72,0,1)]">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 md:gap-5 flex-1 xl:min-h-0 transition-all duration-700 delay-200 ease-[cubic-bezier(0.32,0.72,0,1)]">
           
           {/* Left Column: Ranking */}
-          <DoubleBezelCard flex1 className="p-5 flex flex-col" wrapperClassName="xl:col-span-4">
-            <div className="flex items-center justify-between mb-5 shrink-0">
+          <DoubleBezelCard wrapperClassName="xl:col-span-4 h-[450px] xl:h-auto xl:min-h-0 flex flex-col" className="p-4 md:p-5 flex flex-col">
+            <div className="flex items-center justify-between mb-4 md:mb-5 shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
                   <Users size={14} className="text-[#d8751e]" />
@@ -248,11 +248,11 @@ export default function App() {
           </DoubleBezelCard>
 
           {/* Right Column: Charts */}
-          <div className="xl:col-span-8 flex flex-col gap-5 min-h-0">
+          <div className="xl:col-span-8 flex flex-col gap-4 md:gap-5 xl:min-h-0">
             
             {/* Top Right: Line Chart (Projeção) */}
-            <DoubleBezelCard flex1 className="p-5 flex flex-col">
-              <div className="flex items-center justify-between mb-5 shrink-0">
+            <DoubleBezelCard wrapperClassName="h-[350px] xl:h-auto xl:flex-1 xl:min-h-0 flex flex-col" className="p-4 md:p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-4 md:mb-5 shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
                     <TrendingUp size={14} className="text-[#d8751e]" />
@@ -321,7 +321,7 @@ export default function App() {
             </DoubleBezelCard>
 
             {/* Bottom Right: Bar Chart (Mix de Produtos) */}
-            <DoubleBezelCard className="p-5 h-[220px] shrink-0 flex flex-col">
+            <DoubleBezelCard wrapperClassName="h-[280px] xl:h-[220px] shrink-0 flex flex-col" className="p-4 md:p-5 flex flex-col">
               <div className="flex items-center gap-2.5 mb-3 shrink-0">
                 <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
                   <Package size={14} className="text-[#00AE00]" />
