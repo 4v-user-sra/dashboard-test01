@@ -101,33 +101,34 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 // Double-Bezel Architecture Container (Doppelrand)
 const DoubleBezelCard = ({ children, className = "", wrapperClassName = "" }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+  const spotlightRef = useRef<HTMLDivElement>(null);
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || !spotlightRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    setMousePos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    });
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    spotlightRef.current.style.background = `radial-gradient(500px circle at ${x}px ${y}px, rgba(243,156,56,0.15), transparent 40%)`;
   };
 
-  const handleMouseLeave = () => setMousePos({ x: -1000, y: -1000 });
+  const handleMouseLeave = () => {
+    if (spotlightRef.current) {
+      spotlightRef.current.style.background = 'transparent';
+    }
+  };
 
   return (
     <div 
       ref={cardRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className={`bg-white/[0.02] border border-white/[0.05] p-[5px] rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative overflow-hidden group/card ${wrapperClassName}`}
+      className={`bg-white/[0.02] border border-white/[0.05] p-[4px] rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative overflow-hidden group/card ${wrapperClassName}`}
     >
       <div 
+        ref={spotlightRef}
         className="pointer-events-none absolute inset-0 z-10 transition-opacity duration-300 opacity-0 group-hover/card:opacity-100"
-        style={{
-          background: `radial-gradient(500px circle at ${mousePos.x}px ${mousePos.y}px, rgba(243,156,56,0.15), transparent 40%)`
-        }}
       />
-      <div className={`bg-[#050505]/40 backdrop-blur-3xl rounded-[calc(2rem-5px)] border border-white/[0.03] h-full relative z-20 ${className}`}>
+      <div className={`bg-[#050505]/40 backdrop-blur-3xl rounded-[calc(2rem-4px)] border border-white/[0.03] h-full relative z-20 ${className}`}>
         {children}
       </div>
     </div>
@@ -181,12 +182,15 @@ const ProgressBar = ({ label, subLabel, current, target, formatFn, showIdealMark
 
 export default function App() {
   const [mounted, setMounted] = useState(false);
-  const [globalMouse, setGlobalMouse] = useState({ x: -1000, y: -1000 });
+  const cursorRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => { 
     setMounted(true); 
     const handleMouseMove = (e: MouseEvent) => {
-      setGlobalMouse({ x: e.clientX, y: e.clientY });
+      if (cursorRef.current) {
+        cursorRef.current.style.left = `${e.clientX}px`;
+        cursorRef.current.style.top = `${e.clientY}px`;
+      }
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
@@ -200,8 +204,9 @@ export default function App() {
       
       {/* Custom Global Cursor */}
       <div 
+        ref={cursorRef}
         className="pointer-events-none fixed top-0 left-0 w-4 h-4 rounded-full border-[1.5px] border-[#F39C38] z-[9999] transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 ease-out flex items-center justify-center bg-[#F39C38]/10 backdrop-blur-sm shadow-[0_0_10px_rgba(243,156,56,0.3)]"
-        style={{ left: globalMouse.x, top: globalMouse.y }}
+        style={{ left: '-1000px', top: '-1000px' }}
       >
         <div className="w-1 h-1 bg-[#F39C38] rounded-full"></div>
       </div>
@@ -213,33 +218,33 @@ export default function App() {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMiIvPjwvc3ZnPg==')] opacity-[0.15] mix-blend-overlay"></div>
       </div>
 
-      <main className="relative z-10 flex-1 p-3 sm:p-4 md:p-6 flex flex-col gap-4 md:gap-5 max-w-[1600px] mx-auto w-full xl:min-h-0">
+      <main className="relative z-10 flex-1 p-3 md:p-5 flex flex-col gap-4 max-w-[1600px] mx-auto w-full xl:min-h-0">
         
         {/* Header Section */}
-        <header className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-end gap-4 pb-2 md:pb-4 shrink-0 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] translate-y-0 opacity-100">
-          <div className="flex items-center gap-3 md:gap-4">
+        <header className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-end gap-3 pb-2 shrink-0 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] translate-y-0 opacity-100">
+          <div className="flex items-center gap-3">
              <div>
-                <h1 className="text-2xl font-extrabold tracking-tight text-white uppercase">
+                <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-white uppercase">
                   DASHBOARD <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F39C38] to-[#d8751e]">TEST 01</span>
                 </h1>
                 <div className="flex items-center gap-2 mt-1">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#00AE00] shadow-[0_0_8px_#00AE00] animate-pulse"></div>
-                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.3em]">Status Atualizado</p>
+                  <p className="text-[10px] md:text-[11px] font-bold text-white/50 uppercase tracking-[0.3em]">Status Atualizado</p>
                 </div>
              </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex flex-col text-right">
-              <span className="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em] mb-1">Ciclo Operacional</span>
-              <span className="text-sm font-extrabold text-white tracking-widest">DIA {currentDate.toString().padStart(2, '0')} <span className="text-white/30 font-medium">/ {totalDays}</span></span>
+              <span className="text-[10px] md:text-[11px] font-bold text-white/40 uppercase tracking-[0.2em] mb-1">Ciclo Operacional</span>
+              <span className="text-sm md:text-base font-extrabold text-white tracking-widest">DIA {currentDate.toString().padStart(2, '0')} <span className="text-white/30 font-medium">/ {totalDays}</span></span>
             </div>
           </div>
         </header>
 
         {/* Top KPIs (Metas Globais) */}
-        <DoubleBezelCard wrapperClassName="shrink-0 transition-all duration-700 delay-100 ease-[cubic-bezier(0.32,0.72,0,1)]" className="p-5 md:p-6 flex flex-col justify-center">
+        <DoubleBezelCard wrapperClassName="shrink-0 transition-all duration-700 delay-100 ease-[cubic-bezier(0.32,0.72,0,1)]" className="p-4 flex flex-col justify-center">
           <div className="grid grid-cols-1 sm:grid-cols-2">
-            <div className="pb-6 sm:pb-0 sm:pr-8 border-b sm:border-b-0 sm:border-r border-[#2A2A2A]">
+            <div className="pb-4 sm:pb-0 sm:pr-8 border-b sm:border-b-0 sm:border-r border-[#2A2A2A]">
               <ProgressBar 
                 label="Seguros Novos" 
                 current={kpiData.segurosNovos.current} 
@@ -247,7 +252,7 @@ export default function App() {
                 formatFn={formatCurrency} 
               />
             </div>
-            <div className="pt-6 sm:pt-0 sm:pl-8">
+            <div className="pt-4 sm:pt-0 sm:pl-8">
               <ProgressBar 
                 label="Renovações" 
                 current={kpiData.renovacoes.current} 
@@ -259,18 +264,18 @@ export default function App() {
         </DoubleBezelCard>
 
         {/* Main Grid: Ranking (Left) & Charts (Right) */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 md:gap-5 flex-1 xl:min-h-0 transition-all duration-700 delay-200 ease-[cubic-bezier(0.32,0.72,0,1)]">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 flex-1 xl:min-h-0 transition-all duration-700 delay-200 ease-[cubic-bezier(0.32,0.72,0,1)]">
           
           {/* Left Column: Ranking & Mix de Produtos */}
-          <div className="xl:col-span-4 flex flex-col gap-4 md:gap-5 xl:min-h-0">
+          <div className="xl:col-span-4 flex flex-col gap-4 xl:min-h-0">
             
             {/* Top Left: Bar Chart (Mix de Produtos) */}
-            <DoubleBezelCard wrapperClassName="h-[280px] xl:h-auto xl:flex-1 xl:min-h-0 flex flex-col" className="p-4 md:p-5 flex flex-col">
+            <DoubleBezelCard wrapperClassName="h-[280px] xl:h-auto xl:flex-1 xl:min-h-0 flex flex-col" className="p-4 flex flex-col">
               <div className="flex items-center gap-2.5 mb-3 shrink-0">
                 <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
-                  <Package size={14} className="text-[#00AE00]" />
+                  <Package size={16} className="text-[#00AE00]" />
                 </div>
-                <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">Volume de Produtos Vendidos</h2>
+                <h2 className="text-[11px] md:text-xs font-bold uppercase tracking-[0.2em] text-white/80">Volume de Produtos Vendidos</h2>
               </div>
               
               <div className="flex-1 w-full h-full min-h-0">
@@ -283,8 +288,8 @@ export default function App() {
                       type="category" 
                       axisLine={false} 
                       tickLine={false} 
-                      width={130} 
-                      tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: 600 }} 
+                      width={140} 
+                      tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 600 }} 
                     />
                     <Tooltip 
                       cursor={{ fill: 'rgba(255,255,255,0.02)' }}
@@ -293,15 +298,15 @@ export default function App() {
                           const data = payload[0].payload;
                           return (
                             <div className="bg-[#050505]/90 backdrop-blur-xl border border-white/10 p-3 rounded-lg shadow-2xl flex flex-col gap-2">
-                              <span className="text-white font-bold text-xs uppercase tracking-wider border-b border-white/10 pb-1.5">{data.name}</span>
+                              <span className="text-white font-bold text-sm uppercase tracking-wider border-b border-white/10 pb-1.5">{data.name}</span>
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center justify-between gap-6">
-                                  <span className="text-white/50 font-medium text-[10px] uppercase tracking-wider">Volume:</span>
-                                  <span className="text-[#00AE00] font-bold text-xs">{data.quantity} un.</span>
+                                  <span className="text-white/50 font-medium text-xs uppercase tracking-wider">Volume:</span>
+                                  <span className="text-[#00AE00] font-bold text-sm">{data.quantity} un.</span>
                                 </div>
                                 <div className="flex items-center justify-between gap-6">
-                                  <span className="text-white/50 font-medium text-[10px] uppercase tracking-wider">Participação:</span>
-                                  <span className="text-white font-bold text-xs">{data.percent}%</span>
+                                  <span className="text-white/50 font-medium text-xs uppercase tracking-wider">Participação:</span>
+                                  <span className="text-white font-bold text-sm">{data.percent}%</span>
                                 </div>
                               </div>
                             </div>
@@ -313,15 +318,15 @@ export default function App() {
                     <Bar 
                       dataKey="percent" 
                       radius={[0, 4, 4, 0]} 
-                      barSize={12}
+                      barSize={14}
                       animationDuration={1500}
                       animationEasing="ease-out"
                     >
                       <LabelList 
                         dataKey="quantity" 
                         position="right" 
-                        fill="rgba(255,255,255,0.6)" 
-                        fontSize={10} 
+                        fill="rgba(255,255,255,0.7)" 
+                        fontSize={11} 
                         fontWeight={700}
                         formatter={(val: number) => `${val}`}
                       />
@@ -338,28 +343,28 @@ export default function App() {
             </DoubleBezelCard>
 
             {/* Bottom Left: Histórico de Entrada de Dados */}
-            <DoubleBezelCard wrapperClassName="shrink-0 flex flex-col xl:flex-1 xl:min-h-0" className="p-4 md:p-5 flex flex-col">
-              <div className="flex items-center justify-between mb-4 md:mb-5 shrink-0">
+            <DoubleBezelCard wrapperClassName="shrink-0 flex flex-col xl:flex-1 xl:min-h-0" className="p-4 flex flex-col">
+              <div className="flex items-center justify-between mb-3 md:mb-4 shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
-                    <Activity size={14} className="text-[#00AE00]" />
+                    <Activity size={16} className="text-[#00AE00]" />
                   </div>
-                  <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">Histórico de Dados</h2>
+                  <h2 className="text-[11px] md:text-xs font-bold uppercase tracking-[0.2em] text-white/80">Histórico de Dados</h2>
                 </div>
-                <div className="px-2.5 py-1 rounded-full bg-[#00AE00]/10 border border-[#00AE00]/20 text-[9px] font-bold text-[#00AE00] tracking-wider animate-pulse">
+                <div className="px-2.5 py-1 rounded-full bg-[#00AE00]/10 border border-[#00AE00]/20 text-[10px] font-bold text-[#00AE00] tracking-wider animate-pulse">
                   LOG
                 </div>
               </div>
               
               <div className="flex flex-col gap-2.5 flex-1 pr-1 overflow-y-auto custom-scrollbar">
                 {historicoDados.map((item) => (
-                  <div key={item.id} className="flex flex-col gap-1.5 p-3 rounded-xl bg-white/5 border border-white/5 group hover:bg-white/10 hover:border-white/10 transition-colors">
+                  <div key={item.id} className="flex flex-col gap-1.5 p-3 rounded-xl bg-white/5 border border-white/5 group hover:bg-white/10 hover:border-white/10 transition-colors shrink-0">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-white/90">{item.tipoEntrada}</span>
-                      <span className="text-[9px] font-bold text-white/40">{item.time}</span>
+                      <span className="text-xs font-bold text-white/90">{item.tipoEntrada}</span>
+                      <span className="text-[10px] font-bold text-white/40">{item.time}</span>
                     </div>
-                    <p className="text-[10px] text-white/50 leading-relaxed pr-2 mt-0.5">
-                      <span className="text-white/70 font-semibold mr-1.5">{item.dataHora} —</span>
+                    <p className="text-[11px] text-white/60 leading-relaxed pr-2 mt-0.5">
+                      <span className="text-white/80 font-semibold mr-1.5">{item.dataHora} —</span>
                       {item.observacao}
                     </p>
                   </div>
@@ -373,15 +378,15 @@ export default function App() {
           <div className="xl:col-span-8 flex flex-col xl:min-h-0">
             
             {/* Top Right: Line Chart (Meta) */}
-            <DoubleBezelCard wrapperClassName="h-[350px] xl:h-auto xl:flex-1 xl:min-h-0 flex flex-col" className="p-4 md:p-5 flex flex-col">
+            <DoubleBezelCard wrapperClassName="h-[350px] xl:h-auto xl:flex-1 xl:min-h-0 flex flex-col" className="p-4 flex flex-col">
               <div className="flex items-center justify-between mb-4 md:mb-5 shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
-                    <TrendingUp size={14} className="text-[#00AE00]" />
+                    <TrendingUp size={16} className="text-[#00AE00]" />
                   </div>
-                  <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">Evolução & Meta</h2>
+                  <h2 className="text-[11px] md:text-xs font-bold uppercase tracking-[0.2em] text-white/80">Evolução & Meta</h2>
                 </div>
-                <div className="flex gap-4 text-[9px] font-bold uppercase tracking-widest text-white/50">
+                <div className="flex gap-4 text-[10px] md:text-[11px] font-bold uppercase tracking-widest text-white/50">
                   <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 bg-[#d8751e] rounded-sm shadow-[0_0_8px_rgba(216,117,30,0.5)]"></div> Realizado
                   </div>
@@ -405,13 +410,13 @@ export default function App() {
                       dataKey="dia" 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 600, fontFamily: 'ui-monospace, SFMono-Regular, monospace' }} 
+                      tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 600, fontFamily: 'ui-monospace, SFMono-Regular, monospace' }} 
                       dy={10}
                     />
                     <YAxis 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 600, fontFamily: 'ui-monospace, SFMono-Regular, monospace' }} 
+                      tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 600, fontFamily: 'ui-monospace, SFMono-Regular, monospace' }} 
                       tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`}
                       dx={-10}
                     />
