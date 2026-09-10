@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Line, ComposedChart, BarChart, Bar, Cell, Tooltip, LabelList } from 'recharts';
 import { TrendingUp, Target, Users, Package, Activity } from 'lucide-react';
 
@@ -9,17 +9,17 @@ const totalDays = 30;
 const idealPercent = (currentDate / totalDays) * 100;
 
 const kpiData = {
-  seguroNovo: { target: 1200000, current: 800000 },
-  renovacao: { target: 800000, current: 650000 },
-  total: { target: 2000000, current: 1450000 },
-  comissao: { target: 400000, current: 290000 }
+  segurosNovos: { target: 1200000, current: 800000 },
+  renovacoes: { target: 800000, current: 650000 },
 };
 
-const rankingData = [
-  { id: 1, name: "Roberto Silva", sales: 450000, target: 500000, avatar: "roberto" },
-  { id: 2, name: "Amanda Costa", sales: 420000, target: 500000, avatar: "amanda" },
-  { id: 3, name: "Carlos Souza", sales: 380000, target: 500000, avatar: "carlos" },
-  { id: 4, name: "Fernanda Lima", sales: 200000, target: 500000, avatar: "fernanda" },
+const historicoDados = [
+  { id: 1, tipoEntrada: 'Automóvel', dataHora: '10/09/2026 10:10', observacao: 'Nova apólice gerada. Bônus classe 4 aplicado.', time: 'Há 2 min' },
+  { id: 2, tipoEntrada: 'Vida Individual', dataHora: '10/09/2026 09:57', observacao: 'Atualização de faixa etária do segurado.', time: 'Há 15 min' },
+  { id: 3, tipoEntrada: 'Residencial', dataHora: '10/09/2026 09:30', observacao: 'Inclusão de cobertura vendaval.', time: 'Há 42 min' },
+  { id: 4, tipoEntrada: 'Empresarial', dataHora: '10/09/2026 08:12', observacao: 'Inadimplência > 60 dias. Encaminhado cobrança.', time: 'Há 2 horas' },
+  { id: 5, tipoEntrada: 'Frota', dataHora: '10/09/2026 07:12', observacao: 'Frota atualizada (12 veículos) confirmada.', time: 'Há 3 horas' },
+  { id: 6, tipoEntrada: 'Mobi Livre', dataHora: '10/09/2026 06:12', observacao: 'Aguardando vistoria prévia do equipamento.', time: 'Há 4 horas' },
 ];
 
 const lineData = Array.from({ length: totalDays }, (_, i) => {
@@ -32,28 +32,35 @@ const lineData = Array.from({ length: totalDays }, (_, i) => {
   
   const atual = isPast ? Math.round(baseValue + variance) : null;
   
-  let projecao = null;
+  let meta = null;
   if (day >= currentDate) {
     if (isToday) {
-      projecao = atual;
+      meta = atual;
     } else {
       const growthRate = 60000;
-      projecao = Math.round((50000 * currentDate) + (growthRate * (day - currentDate)));
+      meta = Math.round((50000 * currentDate) + (growthRate * (day - currentDate)));
     }
   }
 
   return {
     dia: day.toString().padStart(2, '0'),
     atual,
-    projecao
+    meta
   };
 });
 
 const productData = [
-  { name: 'Seguro Auto', percent: 45, quantity: 1440 },
-  { name: 'Seguro Vida', percent: 25, quantity: 800 },
-  { name: 'Empresarial', percent: 18, quantity: 576 },
-  { name: 'Residencial', percent: 12, quantity: 384 },
+  { name: 'Automóvel', percent: 30, quantity: 1500 },
+  { name: 'Residencial', percent: 20, quantity: 1000 },
+  { name: 'Condomínio', percent: 15, quantity: 750 },
+  { name: 'Empresarial', percent: 10, quantity: 500 },
+  { name: 'Frota', percent: 8, quantity: 400 },
+  { name: 'Equipamento', percent: 5, quantity: 250 },
+  { name: 'Evento', percent: 4, quantity: 200 },
+  { name: 'Mobi Livre', percent: 3, quantity: 150 },
+  { name: 'Vida', percent: 3, quantity: 150 },
+  { name: 'RC Profissional', percent: 1, quantity: 50 },
+  { name: 'Demais produtos', percent: 1, quantity: 50 },
 ];
 
 // --- UTILS ---
@@ -92,13 +99,40 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 // Double-Bezel Architecture Container (Doppelrand)
-const DoubleBezelCard = ({ children, className = "", wrapperClassName = "" }: any) => (
-  <div className={`bg-white/[0.02] border border-white/[0.05] p-[5px] rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.4)] ${wrapperClassName}`}>
-    <div className={`bg-[#050505]/40 backdrop-blur-3xl rounded-[calc(2rem-5px)] border border-white/[0.03] h-full ${className}`}>
-      {children}
+const DoubleBezelCard = ({ children, className = "", wrapperClassName = "" }: any) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  const handleMouseLeave = () => setMousePos({ x: -1000, y: -1000 });
+
+  return (
+    <div 
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className={`bg-white/[0.02] border border-white/[0.05] p-[5px] rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative overflow-hidden group/card ${wrapperClassName}`}
+    >
+      <div 
+        className="pointer-events-none absolute inset-0 z-10 transition-opacity duration-300 opacity-0 group-hover/card:opacity-100"
+        style={{
+          background: `radial-gradient(500px circle at ${mousePos.x}px ${mousePos.y}px, rgba(243,156,56,0.15), transparent 40%)`
+        }}
+      />
+      <div className={`bg-[#050505]/40 backdrop-blur-3xl rounded-[calc(2rem-5px)] border border-white/[0.03] h-full relative z-20 ${className}`}>
+        {children}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const ProgressBar = ({ label, subLabel, current, target, formatFn, showIdealMarker = true }: any) => {
   const percent = (current / target) * 100;
@@ -114,9 +148,14 @@ const ProgressBar = ({ label, subLabel, current, target, formatFn, showIdealMark
           <span className="text-[11px] md:text-[13px] font-extrabold text-[#F39C38] uppercase tracking-[0.1em] drop-shadow-md group-hover:text-[#d8751e] transition-colors">{label}</span>
           {subLabel && <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-1">{subLabel}</span>}
         </div>
-        <div className="text-right">
-          <span className="text-xl font-extrabold text-white tracking-tight">{formatFn(current)}</span>
-          <span className="text-[10px] font-semibold text-white/40 ml-2">/ {formatFn(target)}</span>
+        <div className="text-right flex flex-col items-end">
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-extrabold text-white tracking-tight">{formatFn(current)}</span>
+            <span className="text-[10px] font-bold text-[#00AE00] bg-[#00AE00]/10 px-1.5 py-0.5 rounded border border-[#00AE00]/20">
+              {percent.toFixed(1)}%
+            </span>
+          </div>
+          <span className="text-[10px] font-semibold text-white/40 mt-1">META: {formatFn(target)}</span>
         </div>
       </div>
       <div className="h-1.5 bg-white/5 rounded-full relative overflow-hidden">
@@ -142,11 +181,31 @@ const ProgressBar = ({ label, subLabel, current, target, formatFn, showIdealMark
 
 export default function App() {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const [globalMouse, setGlobalMouse] = useState({ x: -1000, y: -1000 });
+  
+  useEffect(() => { 
+    setMounted(true); 
+    const handleMouseMove = (e: MouseEvent) => {
+      setGlobalMouse({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   return (
-    <div className="min-h-[100dvh] xl:h-screen bg-[#050505] text-white font-['Plus_Jakarta_Sans'] flex flex-col overflow-x-hidden xl:overflow-hidden relative selection:bg-[#d8751e]/30">
+    <div className="min-h-[100dvh] xl:h-screen bg-[#050505] text-white font-['Plus_Jakarta_Sans'] flex flex-col overflow-x-hidden xl:overflow-hidden relative selection:bg-[#d8751e]/30 cursor-none">
+      <style>{`
+        * { cursor: none !important; }
+      `}</style>
       
+      {/* Custom Global Cursor */}
+      <div 
+        className="pointer-events-none fixed top-0 left-0 w-4 h-4 rounded-full border-[1.5px] border-[#F39C38] z-[9999] transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 ease-out flex items-center justify-center bg-[#F39C38]/10 backdrop-blur-sm shadow-[0_0_10px_rgba(243,156,56,0.3)]"
+        style={{ left: globalMouse.x, top: globalMouse.y }}
+      >
+        <div className="w-1 h-1 bg-[#F39C38] rounded-full"></div>
+      </div>
+
       {/* Vibe Archetype: Ethereal Glass Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className={`absolute -top-[20%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-[#d8751e]/20 blur-[120px] mix-blend-screen transition-opacity duration-1000 ${mounted ? 'opacity-100' : 'opacity-0'}`} />
@@ -179,29 +238,20 @@ export default function App() {
 
         {/* Top KPIs (Metas Globais) */}
         <DoubleBezelCard wrapperClassName="shrink-0 transition-all duration-700 delay-100 ease-[cubic-bezier(0.32,0.72,0,1)]" className="p-5 md:p-6 flex flex-col justify-center">
-          <div className="grid grid-cols-1 sm:grid-cols-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2">
             <div className="pb-6 sm:pb-0 sm:pr-8 border-b sm:border-b-0 sm:border-r border-[#2A2A2A]">
               <ProgressBar 
-                label="Seguro Novo" 
-                current={kpiData.seguroNovo.current} 
-                target={kpiData.seguroNovo.target} 
-                formatFn={formatCurrency} 
-              />
-            </div>
-            <div className="py-6 sm:py-0 sm:px-8 border-b sm:border-b-0 sm:border-r border-[#2A2A2A]">
-              <ProgressBar 
-                label="Renovação" 
-                current={kpiData.renovacao.current} 
-                target={kpiData.renovacao.target} 
+                label="Seguros Novos" 
+                current={kpiData.segurosNovos.current} 
+                target={kpiData.segurosNovos.target} 
                 formatFn={formatCurrency} 
               />
             </div>
             <div className="pt-6 sm:pt-0 sm:pl-8">
               <ProgressBar 
-                label="Total Produção" 
-                subLabel="(Seguro Novo + Renovação)"
-                current={kpiData.total.current} 
-                target={kpiData.total.target} 
+                label="Renovações" 
+                current={kpiData.renovacoes.current} 
+                target={kpiData.renovacoes.target} 
                 formatFn={formatCurrency} 
               />
             </div>
@@ -213,64 +263,8 @@ export default function App() {
           
           {/* Left Column: Ranking & Mix de Produtos */}
           <div className="xl:col-span-4 flex flex-col gap-4 md:gap-5 xl:min-h-0">
-            {/* Ranking Operadores */}
-            <DoubleBezelCard wrapperClassName="shrink-0 flex flex-col" className="p-4 md:p-5 flex flex-col">
-              <div className="flex items-center justify-between mb-3 shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
-                    <Users size={14} className="text-[#00AE00]" />
-                  </div>
-                  <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">Ranking de Operadores</h2>
-                </div>
-                <div className="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold text-white/60 tracking-wider">
-                  TOP 4
-                </div>
-              </div>
-              
-              <div className="flex flex-col mb-4 pb-4 border-b border-[#2A2A2A] shrink-0">
-                <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest mb-0.5">Comissão Total Distribuída</span>
-                <span className="text-xl font-extrabold text-[#00AE00] tracking-tight">{formatCurrency(kpiData.comissao.current)}</span>
-              </div>
-              
-              <div className="flex flex-col gap-3 flex-1 pr-2 custom-scrollbar">
-                {rankingData.map((seller, index) => {
-                  const percent = (seller.sales / seller.target) * 100;
-                  const comissao = seller.sales * 0.2;
-                  const avatarUrl = `https://api.dicebear.com/9.x/notionists/svg?seed=${seller.avatar}&backgroundColor=transparent`;
-                  
-                  return (
-                    <div key={seller.id} className="flex flex-col gap-2 group cursor-pointer active:scale-[0.98] transition-transform duration-300">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="text-white/30 font-bold text-xs w-4 font-mono">{index + 1}</span>
-                          <div className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-110 group-hover:border-white/30">
-                            <img src={avatarUrl} alt={seller.name} className="w-6 h-6 opacity-80 mix-blend-screen grayscale group-hover:grayscale-0 transition-all" />
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-[13px] text-white/80 group-hover:text-white transition-colors">{seller.name}</span>
-                            <span className="text-[9px] font-bold text-white/40">Prod: {formatCurrency(seller.sales)}</span>
-                          </div>
-                        </div>
-                        <span className="font-bold text-xs text-[#00AE00] tracking-tight">{formatCurrency(comissao)}</span>
-                      </div>
-                      {/* Seller Progress Bar */}
-                      <div className="h-[3px] bg-white/5 rounded-full overflow-hidden ml-7 w-[calc(100%-28px)] group-hover:bg-white/10 transition-colors">
-                        <div 
-                          className="h-full rounded-full transition-all duration-[1200ms] ease-[cubic-bezier(0.32,0.72,0,1)]" 
-                          style={{ 
-                            width: mounted ? `${percent}%` : '0%', 
-                            backgroundColor: index < 3 ? '#00AE00' : 'rgba(255,255,255,0.4)',
-                            boxShadow: index < 3 ? '0 0 8px rgba(0,174,0,0.5)' : 'none'
-                          }} 
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </DoubleBezelCard>
-
-            {/* Bottom Right: Bar Chart (Mix de Produtos) -> Moved to Left */}
+            
+            {/* Top Left: Bar Chart (Mix de Produtos) */}
             <DoubleBezelCard wrapperClassName="h-[280px] xl:h-auto xl:flex-1 xl:min-h-0 flex flex-col" className="p-4 md:p-5 flex flex-col">
               <div className="flex items-center gap-2.5 mb-3 shrink-0">
                 <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
@@ -289,7 +283,7 @@ export default function App() {
                       type="category" 
                       axisLine={false} 
                       tickLine={false} 
-                      width={100} 
+                      width={130} 
                       tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: 600 }} 
                     />
                     <Tooltip 
@@ -319,7 +313,7 @@ export default function App() {
                     <Bar 
                       dataKey="percent" 
                       radius={[0, 4, 4, 0]} 
-                      barSize={16}
+                      barSize={12}
                       animationDuration={1500}
                       animationEasing="ease-out"
                     >
@@ -342,26 +336,57 @@ export default function App() {
                 </ResponsiveContainer>
               </div>
             </DoubleBezelCard>
+
+            {/* Bottom Left: Histórico de Entrada de Dados */}
+            <DoubleBezelCard wrapperClassName="shrink-0 flex flex-col xl:flex-1 xl:min-h-0" className="p-4 md:p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-4 md:mb-5 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
+                    <Activity size={14} className="text-[#00AE00]" />
+                  </div>
+                  <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">Histórico de Dados</h2>
+                </div>
+                <div className="px-2.5 py-1 rounded-full bg-[#00AE00]/10 border border-[#00AE00]/20 text-[9px] font-bold text-[#00AE00] tracking-wider animate-pulse">
+                  LOG
+                </div>
+              </div>
+              
+              <div className="flex flex-col gap-2.5 flex-1 pr-1 overflow-y-auto custom-scrollbar">
+                {historicoDados.map((item) => (
+                  <div key={item.id} className="flex flex-col gap-1.5 p-3 rounded-xl bg-white/5 border border-white/5 group hover:bg-white/10 hover:border-white/10 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-white/90">{item.tipoEntrada}</span>
+                      <span className="text-[9px] font-bold text-white/40">{item.time}</span>
+                    </div>
+                    <p className="text-[10px] text-white/50 leading-relaxed pr-2 mt-0.5">
+                      <span className="text-white/70 font-semibold mr-1.5">{item.dataHora} —</span>
+                      {item.observacao}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </DoubleBezelCard>
+
           </div>
 
           {/* Right Column: Charts */}
           <div className="xl:col-span-8 flex flex-col xl:min-h-0">
             
-            {/* Top Right: Line Chart (Projeção) */}
+            {/* Top Right: Line Chart (Meta) */}
             <DoubleBezelCard wrapperClassName="h-[350px] xl:h-auto xl:flex-1 xl:min-h-0 flex flex-col" className="p-4 md:p-5 flex flex-col">
               <div className="flex items-center justify-between mb-4 md:mb-5 shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="p-1.5 rounded-lg bg-white/5 border border-white/5">
                     <TrendingUp size={14} className="text-[#00AE00]" />
                   </div>
-                  <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">Evolução & Projeção</h2>
+                  <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">Evolução & Meta</h2>
                 </div>
                 <div className="flex gap-4 text-[9px] font-bold uppercase tracking-widest text-white/50">
                   <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 bg-[#d8751e] rounded-sm shadow-[0_0_8px_rgba(216,117,30,0.5)]"></div> Realizado
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <div className="w-4 h-0 border-t border-dashed border-[#d8751e] opacity-80"></div> Projeção
+                    <div className="w-4 h-0 border-t border-dashed border-[#d8751e] opacity-80"></div> Meta
                   </div>
                 </div>
               </div>
@@ -403,7 +428,7 @@ export default function App() {
                     />
                     <Line 
                       type="monotone" 
-                      dataKey="projecao" 
+                      dataKey="meta" 
                       stroke="#d8751e" 
                       strokeWidth={2} 
                       strokeDasharray="4 4" 
